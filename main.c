@@ -4,6 +4,58 @@
 
 #include "cJson/cJSON.h"
 
+// helper data structures to make my life easier
+struct obj
+{
+   int int1;
+   char* str1;
+};
+
+void printObj(struct obj myObj){
+   printf("Printing new obj\n");
+   printf("int1: %d \n", myObj.int1);
+   printf("str1: %s \n", myObj.str1);
+}
+
+struct sampleData
+{
+   char* str1;
+   char* str2;
+   int int1;
+   int int2;
+   double float1;
+   double float2;
+   double float3; // this is LAST in the json file but should be parsed here as a test
+   int* arrInt;
+   int arrIntLen;
+   struct obj* arrObj;
+   int arrObjLen;
+};
+
+void printSampleData(struct sampleData myData){
+   printf("Printing new sample data\n");
+   printf("str1: %s \n", myData.str1);
+   printf("str2: %s \n", myData.str2);
+   printf("int1: %d \n", myData.int1);
+   printf("int2: %d \n", myData.int2);
+   printf("float1: %f \n", myData.float1);
+   printf("float2: %f \n", myData.float2);
+   printf("float3: %f \n", myData.float3);
+
+   printf("arrInt: ");
+   int i;
+   for(int i = 0; i < myData.arrIntLen; i++){
+      printf("%d ", myData.arrInt[i]);
+   }
+   printf("\n");
+
+   printf("arrObj: ");
+   for(int i = 0; i < myData.arrObjLen; i++){
+      printObj(myData.arrObj[i]);
+   }
+   printf("\n");
+}
+
 int getFileStr(char* inFile, char** fileStr){
    /*
       Get a full string of the contents of file at path inFile.
@@ -50,6 +102,10 @@ int readJson(char* inFile){
       printf("Error reading file %s\n", inFile);
    } 
    printf("==== Read JSON =====\n%s", fileStr);
+
+   //now can actually parse the json
+   cJSON *jObj = cJSON_Parse(fileStr); // create the json object 
+ 
 
    free(fileStr); // free the file string when done
 }

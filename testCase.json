@@ -1,7 +1,6 @@
 {
     "string":   "A test string",
     "string2":  "A second test string",
-    "bool":     true,
     "int":      32,
     "int2":     -104,
     "float":    141.532,
@@ -10,12 +9,12 @@
     "arrayInt": [2, 3, 4],
     "arrayObj": [
         {
-            "bool": false,
-            "int":  213
+            "int":  213,
+            "str":  "hello!"
         },
         {
-            "bool": true,
-            "int":  -213
+            "int":  -213,
+            "str":  "world!"
         }
     ], 
 
