@@ -56,6 +56,13 @@ void printSampleData(sampleData myData){
    printf("\n");
 }
 
+void freeSampleData(sampleData myData){
+   free (myData.str1);
+   free (myData.str2);
+   int i; 
+   for (i = 0; i < myData.arrIntLen; i++) free(myData.arrObj[i].str1);
+}
+
 /* 
    A variety of helper objects to read from Json and fill up a given data structure, and have some 
       mild segfault protection.
@@ -75,13 +82,12 @@ int getJObjInt(cJSON *cJSONRoot, const char* jsonTag, int d){
    }
    
    int buff = jObj->valueint; // make a buffer to return an appropriate val
-   // should really free memory here on jObj but doing so segfaults, so :)
    return buff;
 }
 
 double getJObjDou(cJSON *cJSONRoot, const char* jsonTag, double d){
    /*
-      Returns an integer object from the given cJSON file searching for a particular jsonTag.
+      Returns a double object from the given cJSON file searching for a particular jsonTag.
       If no appropriate json tag is found then it will return default value d
    */
    cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
@@ -90,7 +96,6 @@ double getJObjDou(cJSON *cJSONRoot, const char* jsonTag, double d){
    }
    
    double buff = jObj->valuedouble; // make a buffer to return an appropriate val
-   // should really free memory here on jObj but doing so segfaults, so :)
    return buff;
 }
 
@@ -111,7 +116,9 @@ void dynAllocStr(const char *val, char **toReturn){
 
 void getJObjStr(cJSON *cJSONRoot, const char* jsonTag, const char* d, char **toReturn){
    /*
-      Returns an integer object from the given cJSON file searching for a particular jsonTag.
+      NOTE: UNLIKE THE OTHER METHODS THIS IS NOT LEAK SAFE. ANYTHING YOU GET FROM THIS METHOD MUST 
+         BE FREE'D TO BE LEAK FREE.
+      Returns a string object from the given cJSON file searching for a particular jsonTag.
       If no appropriate json tag is found then it will return default value d
    */
    cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
@@ -121,7 +128,6 @@ void getJObjStr(cJSON *cJSONRoot, const char* jsonTag, const char* d, char **toR
    }
    
    const char* buff = jObj->valuestring; // make a buffer to return an appropriate val
-   // should really free memory here on jObj but doing so segfaults, so :)
    dynAllocStr(buff, toReturn); // allocate the string dynamically
    return;
 }
@@ -221,6 +227,9 @@ int readJson(char* inFile){
    printSampleData(myData); // print the sample data at the end for verification
    cJSON_Delete(jObj); // free the json object
    free(fileStr); // free the file string when done
+
+   //when done need to free anything you got using getJObjStr, so call a "destuctor" to do this
+   freeSampleData(myData);
 }
 
 int main() {
