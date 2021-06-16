@@ -57,8 +57,74 @@ void printSampleData(sampleData myData){
 }
 
 /* 
-   A variety of helper objects to read from Json and fill up a given data structure
+   A variety of helper objects to read from Json and fill up a given data structure, and have some 
+      mild segfault protection.
+   These can be used to access elements within any given json object (ie, something surrounded by 
+      {} )
+   These SHOULD also be used to parse data from within array contained objects.
 */
+
+int getJObjInt(cJSON *cJSONRoot, const char* jsonTag, int d){
+   /*
+      Returns an integer object from the given cJSON file searching for a particular jsonTag.
+      If no appropriate json tag is found then it will return default value d
+   */
+   cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
+   if (jObj == NULL){ // check for non-existence
+      return d; 
+   }
+   
+   int buff = jObj->valueint; // make a buffer to return an appropriate val
+   // should really free memory here on jObj but doing so segfaults, so :)
+   return buff;
+}
+
+double getJObjDou(cJSON *cJSONRoot, const char* jsonTag, double d){
+   /*
+      Returns an integer object from the given cJSON file searching for a particular jsonTag.
+      If no appropriate json tag is found then it will return default value d
+   */
+   cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
+   if (jObj == NULL){ // check for non-existence
+      return d; 
+   }
+   
+   double buff = jObj->valuedouble; // make a buffer to return an appropriate val
+   // should really free memory here on jObj but doing so segfaults, so :)
+   return buff;
+}
+
+void dynAllocStr(const char *val, char **toReturn){
+   /* 
+      A helper function to dynamically allocate a string w value val to toReturn. You should be 
+         passing it an object of form &myStr in the second arg.
+   */
+   int len = strlen(val) + 1; // length of memory to allocate
+   *toReturn = malloc( len);
+   if (*toReturn == NULL){ // stupid error checking
+      printf("Failed to allocate memory for string: %s \n", val);
+      return;
+   }
+
+   *toReturn = strcpy(*toReturn, val);
+}
+
+void getJObjStr(cJSON *cJSONRoot, const char* jsonTag, const char* d, char **toReturn){
+   /*
+      Returns an integer object from the given cJSON file searching for a particular jsonTag.
+      If no appropriate json tag is found then it will return default value d
+   */
+   cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
+   if (jObj == NULL){ // check for non-existence
+      dynAllocStr(d, toReturn); // allocate the string dynamically
+      return; 
+   }
+   
+   const char* buff = jObj->valuestring; // make a buffer to return an appropriate val
+   // should really free memory here on jObj but doing so segfaults, so :)
+   dynAllocStr(buff, toReturn); // allocate the string dynamically
+   return;
+}
 
 int getFileStr(char* inFile, char** fileStr){
    /*
@@ -122,16 +188,15 @@ int readJson(char* inFile){
    }
 
    // get strings 
-   /// TODO: these have to be heap allocated
-   myData.str1 = cJSON_GetObjectItemCaseSensitive(jObj, "string")->valuestring;
-   myData.str2 = cJSON_GetObjectItemCaseSensitive(jObj, "string2")->valuestring;
+   getJObjStr(jObj, "string", "", &myData.str1);
+   getJObjStr(jObj, "string2", "", &myData.str2);
 
    // get primitives
-   myData.int1 = cJSON_GetObjectItemCaseSensitive(jObj, "int")->valueint;
-   myData.int2 = cJSON_GetObjectItemCaseSensitive(jObj, "int2")->valueint;
-   myData.float1 = cJSON_GetObjectItemCaseSensitive(jObj, "float")->valuedouble;
-   myData.float2 = cJSON_GetObjectItemCaseSensitive(jObj, "float2")->valuedouble;
-   myData.float3 = cJSON_GetObjectItemCaseSensitive(jObj, "float3")->valuedouble;
+   myData.int1 = getJObjInt(jObj, "int", -999999);
+   myData.int2 = getJObjInt(jObj, "int1", -999999);
+   myData.float1 = getJObjInt(jObj, "float", -999999.99);
+   myData.float2 = getJObjInt(jObj, "float2", -999999.99);
+   myData.float3 = getJObjInt(jObj, "float3", -999999.99);
 
    // get int array (can't do custom methods for this, have to parse manually)
    cJSON *arrInt = cJSON_GetObjectItemCaseSensitive(jObj, "arrayInt"); // get array ITEM
@@ -141,7 +206,6 @@ int readJson(char* inFile){
    for (i = 0; i < myData.arrIntLen; i++) 
       intBuff[i] = cJSON_GetArrayItem(arrInt, i)->valueint; //get the individual int array items
    myData.arrInt = intBuff; // write to data
-   cJSON_Delete(arrInt); // need to free this object
 
    // get obj array (again, have to parse manually but handle the objects differently)
    cJSON *arrObj = cJSON_GetObjectItemCaseSensitive(jObj, "arrayObj");
@@ -149,12 +213,10 @@ int readJson(char* inFile){
    obj objBuff[myData.arrObjLen]; // create a temp buffer to hold the int array data items
    for (i = 0; i < myData.arrObjLen; i++) {
       cJSON *objElem = cJSON_GetArrayItem(arrObj, i); // get the individual cjson object of this elem
-      objBuff[i].int1 = cJSON_GetObjectItemCaseSensitive(objElem, "int")->valueint;
-      objBuff[i].str1 = cJSON_GetObjectItemCaseSensitive(objElem, "str")->valuestring;
-      cJSON_Delete(objElem); // need to free this object
+      objBuff[i].int1 = getJObjInt(objElem, "int", -999999);
+      getJObjStr(objElem, "str", "", &objBuff[i].str1);
    }
    myData.arrObj = objBuff; // write to data
-   cJSON_Delete(arrObj); // need to free this object
 
    printSampleData(myData); // print the sample data at the end for verification
    cJSON_Delete(jObj); // free the json object
