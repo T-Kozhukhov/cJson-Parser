@@ -1,2 +1,2 @@
 cJsonTest: main.c
-	gcc -o cJsonTest.out main.c cJson/cJSON.c
+	gcc -o cJsonTest.out main.c cJson/cJSON.c -ggdb3
