@@ -121,7 +121,40 @@ int readJson(char* inFile){
       return 1;
    }
 
+   // get strings 
+   /// TODO: these have to be heap allocated
    myData.str1 = cJSON_GetObjectItemCaseSensitive(jObj, "string")->valuestring;
+   myData.str2 = cJSON_GetObjectItemCaseSensitive(jObj, "string2")->valuestring;
+
+   // get primitives
+   myData.int1 = cJSON_GetObjectItemCaseSensitive(jObj, "int")->valueint;
+   myData.int2 = cJSON_GetObjectItemCaseSensitive(jObj, "int2")->valueint;
+   myData.float1 = cJSON_GetObjectItemCaseSensitive(jObj, "float")->valuedouble;
+   myData.float2 = cJSON_GetObjectItemCaseSensitive(jObj, "float2")->valuedouble;
+   myData.float3 = cJSON_GetObjectItemCaseSensitive(jObj, "float3")->valuedouble;
+
+   // get int array (can't do custom methods for this, have to parse manually)
+   cJSON *arrInt = cJSON_GetObjectItemCaseSensitive(jObj, "arrayInt"); // get array ITEM
+   myData.arrIntLen = cJSON_GetArraySize(arrInt); // get array size for parsing
+   int i;
+   int intBuff[myData.arrIntLen]; // create a temp buffer to hold the int array data items
+   for (i = 0; i < myData.arrIntLen; i++) 
+      intBuff[i] = cJSON_GetArrayItem(arrInt, i)->valueint; //get the individual int array items
+   myData.arrInt = intBuff; // write to data
+   cJSON_Delete(arrInt); // need to free this object
+
+   // get obj array (again, have to parse manually but handle the objects differently)
+   cJSON *arrObj = cJSON_GetObjectItemCaseSensitive(jObj, "arrayObj");
+   myData.arrObjLen = cJSON_GetArraySize(arrObj); // get array size for parsing
+   obj objBuff[myData.arrObjLen]; // create a temp buffer to hold the int array data items
+   for (i = 0; i < myData.arrObjLen; i++) {
+      cJSON *objElem = cJSON_GetArrayItem(arrObj, i); // get the individual cjson object of this elem
+      objBuff[i].int1 = cJSON_GetObjectItemCaseSensitive(objElem, "int")->valueint;
+      objBuff[i].str1 = cJSON_GetObjectItemCaseSensitive(objElem, "str")->valuestring;
+      cJSON_Delete(objElem); // need to free this object
+   }
+   myData.arrObj = objBuff; // write to data
+   cJSON_Delete(arrObj); // need to free this object
 
    printSampleData(myData); // print the sample data at the end for verification
    cJSON_Delete(jObj); // free the json object
