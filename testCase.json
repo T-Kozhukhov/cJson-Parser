@@ -1,0 +1,23 @@
+{
+    "string":   "A test string",
+    "string2":  "A second test string",
+    "bool":     true,
+    "int":      32,
+    "int2":     -104,
+    "float":    141.532,
+    "float2":   -2.0,
+
+    "arrayInt": [2, 3, 4],
+    "arrayObj": [
+        {
+            "bool": false,
+            "int":  213
+        },
+        {
+            "bool": true,
+            "int":  -213
+        }
+    ], 
+
+    "float3":   31.543
+}
