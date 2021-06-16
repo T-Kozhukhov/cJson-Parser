@@ -5,19 +5,19 @@
 #include "cJson/cJSON.h"
 
 // helper data structures to make my life easier
-struct obj
+typedef struct
 {
    int int1;
    char* str1;
-};
+} obj;
 
-void printObj(struct obj myObj){
+void printObj(obj myObj){
    printf("Printing new obj\n");
    printf("int1: %d \n", myObj.int1);
    printf("str1: %s \n", myObj.str1);
 }
 
-struct sampleData
+typedef struct
 {
    char* str1;
    char* str2;
@@ -28,11 +28,11 @@ struct sampleData
    double float3; // this is LAST in the json file but should be parsed here as a test
    int* arrInt;
    int arrIntLen;
-   struct obj* arrObj;
+   obj* arrObj;
    int arrObjLen;
-};
+} sampleData;
 
-void printSampleData(struct sampleData myData){
+void printSampleData(sampleData myData){
    printf("Printing new sample data\n");
    printf("str1: %s \n", myData.str1);
    printf("str2: %s \n", myData.str2);
@@ -55,6 +55,10 @@ void printSampleData(struct sampleData myData){
    }
    printf("\n");
 }
+
+/* 
+   A variety of helper objects to read from Json and fill up a given data structure
+*/
 
 int getFileStr(char* inFile, char** fileStr){
    /*
@@ -102,11 +106,25 @@ int readJson(char* inFile){
       printf("Error reading file %s\n", inFile);
    } 
    printf("==== Read JSON =====\n%s", fileStr);
+   printf("\n\n");
 
    //now can actually parse the json
    cJSON *jObj = cJSON_Parse(fileStr); // create the json object 
- 
+   sampleData myData; // create the data object we hope to fill
+   if (jObj == NULL) // error checking
+   {
+      const char *error_ptr = cJSON_GetErrorPtr();
+      if (error_ptr != NULL)
+      {
+         fprintf(stderr, "Json read error. \nError before: %s\n", error_ptr);
+      }
+      return 1;
+   }
 
+   myData.str1 = cJSON_GetObjectItemCaseSensitive(jObj, "string")->valuestring;
+
+   printSampleData(myData); // print the sample data at the end for verification
+   cJSON_Delete(jObj); // free the json object
    free(fileStr); // free the file string when done
 }
 
