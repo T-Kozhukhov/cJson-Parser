@@ -60,7 +60,7 @@ void freeSampleData(sampleData myData){
    free (myData.str1);
    free (myData.str2);
    int i; 
-   for (i = 0; i < myData.arrIntLen; i++) free(myData.arrObj[i].str1);
+   // for (i = 0; i < myData.arrIntLen; i++) free(myData.arrObj[i].str1);
 }
 
 /* 
@@ -163,7 +163,10 @@ int getFileStr(char* inFile, char** fileStr){
       return 2;
    
    /* copy all the text into the buffer */
-   fread(*fileStr, sizeof(char), numbytes, fptr);
+   if (fread(*fileStr, sizeof(char), numbytes, fptr) != 1){
+	   	printf("Error reading file %s\nQuitting.\n", inFile);
+      	return 1;
+   }
 
    fclose(fptr); // close file to free memory
    return 0;
