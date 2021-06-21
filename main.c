@@ -132,6 +132,48 @@ void getJObjStr(cJSON *cJSONRoot, const char* jsonTag, const char* d, char **toR
    return;
 }
 
+/* 
+   Helper methods and structs to check if an element in the .json exists to the code or not
+*/
+
+// a dumb linked list for handling list of saved strings
+typedef struct{
+   linkedList *next; 
+   char* str;
+} linkedList;
+
+int compareList(linkedList *head, const char* val){
+/*
+   Returns 1 if val appears in the linkedList, 0 if not
+*/
+
+  linkedList *current = head;
+  while (current != NULL){ // iterate through linked list until end
+     if (current->str == val){
+        return 1; //if we find something w the correct val then return true
+     }
+
+     current = current->next; //iterate
+  }
+
+  return 0; // if you're here then it doesnt exist in the list
+}
+
+void push(linkedList * head, const char* val){
+/*
+   push a value to the end of the linked list
+*/
+   linkedList *curr = head;
+   while (curr->next != NULL){
+      curr = curr->next; //iterate to end of list
+   }
+
+   // alloc and add to end
+   curr->next = (linkedList*) malloc(sizeof(linkedList));
+   dynAllocStr(val, &curr->next->val);
+   curr->next->next = NULL;
+}
+
 int getFileStr(char* inFile, char** fileStr){
    /*
       Get a full string of the contents of file at path inFile.
