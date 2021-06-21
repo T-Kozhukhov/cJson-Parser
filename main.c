@@ -64,75 +64,6 @@ void freeSampleData(sampleData myData){
 }
 
 /* 
-   A variety of helper objects to read from Json and fill up a given data structure, and have some 
-      mild segfault protection.
-   These can be used to access elements within any given json object (ie, something surrounded by 
-      {} )
-   These SHOULD also be used to parse data from within array contained objects.
-*/
-
-int getJObjInt(cJSON *cJSONRoot, const char* jsonTag, int d){
-   /*
-      Returns an integer object from the given cJSON file searching for a particular jsonTag.
-      If no appropriate json tag is found then it will return default value d
-   */
-   cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
-   if (jObj == NULL){ // check for non-existence
-      return d; 
-   }
-   
-   int buff = jObj->valueint; // make a buffer to return an appropriate val
-   return buff;
-}
-
-double getJObjDou(cJSON *cJSONRoot, const char* jsonTag, double d){
-   /*
-      Returns a double object from the given cJSON file searching for a particular jsonTag.
-      If no appropriate json tag is found then it will return default value d
-   */
-   cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
-   if (jObj == NULL){ // check for non-existence
-      return d; 
-   }
-   
-   double buff = jObj->valuedouble; // make a buffer to return an appropriate val
-   return buff;
-}
-
-void dynAllocStr(const char *val, char **toReturn){
-   /* 
-      A helper function to dynamically allocate a string w value val to toReturn. You should be 
-         passing it an object of form &myStr in the second arg.
-   */
-   int len = strlen(val) + 1; // length of memory to allocate
-   *toReturn = malloc( len);
-   if (*toReturn == NULL){ // stupid error checking
-      printf("Failed to allocate memory for string: %s \n", val);
-      return;
-   }
-
-   *toReturn = strcpy(*toReturn, val);
-}
-
-void getJObjStr(cJSON *cJSONRoot, const char* jsonTag, const char* d, char **toReturn){
-   /*
-      NOTE: UNLIKE THE OTHER METHODS THIS IS NOT LEAK SAFE. ANYTHING YOU GET FROM THIS METHOD MUST 
-         BE FREE'D TO BE LEAK FREE.
-      Returns a string object from the given cJSON file searching for a particular jsonTag.
-      If no appropriate json tag is found then it will return default value d
-   */
-   cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
-   if (jObj == NULL){ // check for non-existence
-      dynAllocStr(d, toReturn); // allocate the string dynamically
-      return; 
-   }
-   
-   const char* buff = jObj->valuestring; // make a buffer to return an appropriate val
-   dynAllocStr(buff, toReturn); // allocate the string dynamically
-   return;
-}
-
-/* 
    Helper methods and structs to check if an element in the .json exists to the code or not
 */
 
@@ -141,6 +72,12 @@ typedef struct{
    linkedList *next; 
    char* str;
 } linkedList;
+
+void initLL(linkedList *head){
+   head = (linkedList*) malloc(sizeof(linkedList));
+   head->next = NULL;
+   dynAllocStr("", &head->str); // fill w blank string
+}
 
 int compareList(linkedList *head, const char* val){
 /*
@@ -172,6 +109,94 @@ void push(linkedList * head, const char* val){
    curr->next = (linkedList*) malloc(sizeof(linkedList));
    dynAllocStr(val, &curr->next->val);
    curr->next->next = NULL;
+}
+
+/* 
+   A variety of helper objects to read from Json and fill up a given data structure, and have some 
+      mild segfault protection.
+   These can be used to access elements within any given json object (ie, something surrounded by 
+      {} )
+   These SHOULD also be used to parse data from within array contained objects.
+*/
+
+cJSON getCJsonArray(cJSON *jObj, cJSON **toReturn, const char* val, 
+   linkedList *jsonList, linkedList *arrayList){
+/*
+   set up a cJSON array ready for parsing, while adding to the necessary linked lists
+*/
+   *toReturn = cJSON_GetObjectItemCaseSensitive(jObj, val);
+   push(jsonList, val);
+   push(arrayList, val);
+}
+
+int getJObjInt(cJSON *cJSONRoot, const char* jsonTag, int d, linkedList *head){
+   /*
+      Returns an integer object from the given cJSON file searching for a particular jsonTag.
+      If no appropriate json tag is found then it will return default value d
+   */
+   push(head, jsonTag); // add jsonTag to head
+
+   // cJson bits
+   cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
+   if (jObj == NULL){ // check for non-existence
+      return d; 
+   }
+   
+   int buff = jObj->valueint; // make a buffer to return an appropriate val
+   return buff;
+}
+
+double getJObjDou(cJSON *cJSONRoot, const char* jsonTag, double d, linkedList *head){
+   /*
+      Returns a double object from the given cJSON file searching for a particular jsonTag.
+      If no appropriate json tag is found then it will return default value d
+   */
+   push(head, jsonTag); // add jsonTag to head
+
+   // cJson bits
+   cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
+   if (jObj == NULL){ // check for non-existence
+      return d; 
+   }
+   
+   double buff = jObj->valuedouble; // make a buffer to return an appropriate val
+   return buff;
+}
+
+void dynAllocStr(const char *val, char **toReturn){
+   /* 
+      A helper function to dynamically allocate a string w value val to toReturn. You should be 
+         passing it an object of form &myStr in the second arg.
+   */
+   int len = strlen(val) + 1; // length of memory to allocate
+   *toReturn = malloc( len);
+   if (*toReturn == NULL){ // stupid error checking
+      printf("Failed to allocate memory for string: %s \n", val);
+      return;
+   }
+
+   *toReturn = strcpy(*toReturn, val);
+}
+
+void getJObjStr(cJSON *cJSONRoot, const char* jsonTag, const char* d, char **toReturn, linkedList *head){
+   /*
+      NOTE: UNLIKE THE OTHER METHODS THIS IS NOT LEAK SAFE. ANYTHING YOU GET FROM THIS METHOD MUST 
+         BE FREE'D TO BE LEAK FREE.
+      Returns a string object from the given cJSON file searching for a particular jsonTag.
+      If no appropriate json tag is found then it will return default value d
+   */
+   push(head, jsonTag); // add jsonTag to head
+
+   // cJson bits
+   cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
+   if (jObj == NULL){ // check for non-existence
+      dynAllocStr(d, toReturn); // allocate the string dynamically
+      return; 
+   }
+   
+   const char* buff = jObj->valuestring; // make a buffer to return an appropriate val
+   dynAllocStr(buff, toReturn); // allocate the string dynamically
+   return;
 }
 
 int getFileStr(char* inFile, char** fileStr){
@@ -238,19 +263,26 @@ int readJson(char* inFile){
       return 1;
    }
 
+   // set up "error checking" routines
+   linkedList *jsonTagList = NULL;
+   initLL(jsonTagList);
+   linkedList *arrayList = NULL;
+   initLL(arrayList);
+
    // get strings 
-   getJObjStr(jObj, "string", "", &myData.str1);
-   getJObjStr(jObj, "string2", "", &myData.str2);
+   getJObjStr(jObj, "string", "", &myData.str1, jsonTagList);
+   getJObjStr(jObj, "string2", "", &myData.str2, jsonTagList);
 
    // get primitives
-   myData.int1 = getJObjInt(jObj, "int", -999999);
-   myData.int2 = getJObjInt(jObj, "int1", -999999);
-   myData.float1 = getJObjInt(jObj, "float", -999999.99);
-   myData.float2 = getJObjInt(jObj, "float2", -999999.99);
-   myData.float3 = getJObjInt(jObj, "float3", -999999.99);
+   myData.int1 = getJObjInt(jObj, "int", -999999, jsonTagList);
+   myData.int2 = getJObjInt(jObj, "int1", -999999, jsonTagList);
+   myData.float1 = getJObjInt(jObj, "float", -999999.99, jsonTagList);
+   myData.float2 = getJObjInt(jObj, "float2", -999999.99, jsonTagList);
+   myData.float3 = getJObjInt(jObj, "float3", -999999.99, jsonTagList);
 
    // get int array (can't do custom methods for this, have to parse manually)
-   cJSON *arrInt = cJSON_GetObjectItemCaseSensitive(jObj, "arrayInt"); // get array ITEM
+   cJSON *arrInt = NULL;
+   getCJsonArray(jObj, &arrInt, "arrayInt", jsonTagList, arrayList);
    myData.arrIntLen = cJSON_GetArraySize(arrInt); // get array size for parsing
    int i;
    int intBuff[myData.arrIntLen]; // create a temp buffer to hold the int array data items
@@ -259,15 +291,28 @@ int readJson(char* inFile){
    myData.arrInt = intBuff; // write to data
 
    // get obj array (again, have to parse manually but handle the objects differently)
-   cJSON *arrObj = cJSON_GetObjectItemCaseSensitive(jObj, "arrayObj");
+   cJSON *arrObj = NULL;
+   getCJsonArray(jObj, &arrObj, "arrayObj", jsonTagList, arrayList);
    myData.arrObjLen = cJSON_GetArraySize(arrObj); // get array size for parsing
    obj objBuff[myData.arrObjLen]; // create a temp buffer to hold the int array data items
    for (i = 0; i < myData.arrObjLen; i++) {
       cJSON *objElem = cJSON_GetArrayItem(arrObj, i); // get the individual cjson object of this elem
-      objBuff[i].int1 = getJObjInt(objElem, "int", -999999);
-      getJObjStr(objElem, "str", "", &objBuff[i].str1);
+      objBuff[i].int1 = getJObjInt(objElem, "int", -999999, jsonTagList);
+      getJObjStr(objElem, "str", "", &objBuff[i].str1, jsonTagList);
    }
    myData.arrObj = objBuff; // write to data
+
+   // TODO: verification stuff
+   /*
+      Need to do the following:
+      - Go through the jObj item as a linked list (use a given method in the readme)
+      - For each item, check the json tag:
+         - If the json tag IS NOT on the jsonTagList linked list, throw an error for the user
+            - Can do this using my method above
+         - If the json tag is an array, then iterate within the array and do the same check
+            - This is only down to a single level
+      - Deallocate the linked list (as necessary, use valgrind)
+   */
 
    printSampleData(myData); // print the sample data at the end for verification
    cJSON_Delete(jObj); // free the json object
