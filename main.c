@@ -82,6 +82,20 @@ void initLL(linkedList **head){
    dynAllocStr("", &((*head)->str)); // fill w blank string
 }
 
+void printLL(linkedList *head){
+/*
+   Dumb method to print each element in the linked list
+   Useful for debugging
+*/
+   if (head == NULL) return;
+   linkedList *curr = head;
+   while(curr != NULL){
+      printf("%s\n", curr->str);
+      curr = curr->next;
+   }
+   
+}
+
 int compareList(linkedList *head, const char* val){
 /*
    Returns 1 if val appears in the linkedList, 0 if not
@@ -89,7 +103,7 @@ int compareList(linkedList *head, const char* val){
 
   linkedList *current = head;
   while (current != NULL){ // iterate through linked list until end
-     if (current->str == val){
+     if (!strcmp(current->str, val)){
         return 1; //if we find something w the correct val then return true
      }
 
@@ -132,6 +146,36 @@ void freeLL(linkedList *head){
    return;
 }
 
+void verifyJson(cJSON *jObj, linkedList *jsonTagList, linkedList* arrayList){
+/*
+   A method to verify if there are any "unknown" json tags in the jObj.
+   Method is recursive for arrays.
+   It is assumed that all parsing is done BEFORE this, as that is necessary for
+      the lists to be properly constructed
+*/
+   cJSON *childObj = NULL;
+   cJSON_ArrayForEach(childObj, jObj){ // loop through children
+      const char *jTag = childObj->string; // get json tag
+      
+      // check if this tag exists on the list of known objects
+      if (!compareList(jsonTagList, jTag)){
+         // throw a warning if it's not
+         printf("JSON Read Warning: Found unrecognised json tag: %s. Tag will be ignored.\n", jTag);
+      } else {
+         // if tag exists, check if it is an array and verify the subarray if necessary
+         if (compareList(arrayList, jTag)) {
+
+            // assume the array is of a child objects, which need to 
+            //    be manually parsed
+            cJSON *arrayChild = NULL;
+            cJSON_ArrayForEach(arrayChild, childObj){
+               verifyJson(arrayChild, jsonTagList, arrayList);
+            }
+         }
+      }
+   }
+}
+
 /* 
    A variety of helper objects to read from Json and fill up a given data structure, and have some 
       mild segfault protection.
@@ -141,13 +185,14 @@ void freeLL(linkedList *head){
 */
 
 cJSON getCJsonArray(cJSON *jObj, cJSON **toReturn, const char* val, 
-   linkedList *jsonList, linkedList *arrayList){
+   linkedList *jsonList, linkedList *arrayList, int type){
 /*
-   set up a cJSON array ready for parsing, while adding to the necessary linked lists
+   Set up a cJSON array ready for parsing, while adding to the necessary linked lists
+   Type param: 0 for array of primitives, 1 for array of objects
 */
    *toReturn = cJSON_GetObjectItemCaseSensitive(jObj, val);
    push(jsonList, val);
-   push(arrayList, val);
+   if (type)   push(arrayList, val); // if array of objects add to array list
 }
 
 int getJObjInt(cJSON *cJSONRoot, const char* jsonTag, int d, linkedList *head){
@@ -251,10 +296,7 @@ int getFileStr(char* inFile, char** fileStr){
       return 2;
    
    /* copy all the text into the buffer */
-   if (fread(*fileStr, sizeof(char), numbytes, fptr) != 1){
-      printf("Error reading file %s\nQuitting.\n", inFile);
-      return 1;
-   }
+   fread(*fileStr, sizeof(char), numbytes, fptr);
 
    fclose(fptr); // close file to free memory
    return 0;
@@ -296,14 +338,14 @@ int readJson(char* inFile){
 
    // get primitives
    myData.int1 = getJObjInt(jObj, "int", -999999, jsonTagList);
-   myData.int2 = getJObjInt(jObj, "int1", -999999, jsonTagList);
+   myData.int2 = getJObjInt(jObj, "int2", -999999, jsonTagList);
    myData.float1 = getJObjInt(jObj, "float", -999999.99, jsonTagList);
    myData.float2 = getJObjInt(jObj, "float2", -999999.99, jsonTagList);
    myData.float3 = getJObjInt(jObj, "float3", -999999.99, jsonTagList);
 
    // get int array (can't do custom methods for this, have to parse manually)
    cJSON *arrInt = NULL;
-   getCJsonArray(jObj, &arrInt, "arrayInt", jsonTagList, arrayList);
+   getCJsonArray(jObj, &arrInt, "arrayInt", jsonTagList, arrayList, 0);
    myData.arrIntLen = cJSON_GetArraySize(arrInt); // get array size for parsing
    int i;
    int intBuff[myData.arrIntLen]; // create a temp buffer to hold the int array data items
@@ -313,7 +355,7 @@ int readJson(char* inFile){
 
    // get obj array (again, have to parse manually but handle the objects differently)
    cJSON *arrObj = NULL;
-   getCJsonArray(jObj, &arrObj, "arrayObj", jsonTagList, arrayList);
+   getCJsonArray(jObj, &arrObj, "arrayObj", jsonTagList, arrayList, 1);
    myData.arrObjLen = cJSON_GetArraySize(arrObj); // get array size for parsing
    obj objBuff[myData.arrObjLen]; // create a temp buffer to hold the int array data items
    for (i = 0; i < myData.arrObjLen; i++) {
@@ -322,6 +364,10 @@ int readJson(char* inFile){
       getJObjStr(objElem, "str", "", &objBuff[i].str1, jsonTagList);
    }
    myData.arrObj = objBuff; // write to data
+
+   // input verification step
+   verifyJson(jObj, jsonTagList, arrayList);
+   printf("\n");
 
    // TODO: verification stuff
    /*
