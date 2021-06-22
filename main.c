@@ -281,7 +281,7 @@ int getFileStr(char* inFile, char** fileStr){
 
    /* Get the number of bytes */
    fseek(fptr, 0L, SEEK_END);
-   long numbytes = ftell(fptr);
+   long numbytes = ftell(fptr) + 1;
    
    /* reset the file position indicator to 
    the beginning of the file */
@@ -292,11 +292,16 @@ int getFileStr(char* inFile, char** fileStr){
    *fileStr = (char*)calloc(numbytes, sizeof(char));	
    
    /* memory error */
-   if(*fileStr == NULL)
+   if(*fileStr == NULL){
+      printf("Error allocating memory for file %s\n", inFile);
       return 2;
+   }  
    
    /* copy all the text into the buffer */
-   fread(*fileStr, sizeof(char), numbytes, fptr);
+   if (fread(*fileStr, sizeof(char), numbytes, fptr) == 0){
+      printf("Could not read file %s\n", inFile);
+      return 3;
+   }
 
    fclose(fptr); // close file to free memory
    return 0;
@@ -308,7 +313,7 @@ int readJson(char* inFile){
    */
    char* fileStr = NULL;
    if(getFileStr(inFile, &fileStr) != 0){ // read, return on error
-      printf("Error reading file %s\n", inFile);
+      return 1;
    } 
    printf("==== Read JSON =====\n%s", fileStr);
    printf("\n\n");
