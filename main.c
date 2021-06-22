@@ -344,9 +344,9 @@ int readJson(char* inFile){
    // get primitives
    myData.int1 = getJObjInt(jObj, "int", -999999, jsonTagList);
    myData.int2 = getJObjInt(jObj, "int2", -999999, jsonTagList);
-   myData.float1 = getJObjInt(jObj, "float", -999999.99, jsonTagList);
-   myData.float2 = getJObjInt(jObj, "float2", -999999.99, jsonTagList);
-   myData.float3 = getJObjInt(jObj, "float3", -999999.99, jsonTagList);
+   myData.float1 = getJObjDou(jObj, "float", -999999.99, jsonTagList);
+   myData.float2 = getJObjDou(jObj, "float2", -999999.99, jsonTagList);
+   myData.float3 = getJObjDou(jObj, "float3", -999999.99, jsonTagList);
 
    // get int array (can't do custom methods for this, have to parse manually)
    cJSON *arrInt = NULL;
