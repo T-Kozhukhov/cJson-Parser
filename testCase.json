@@ -10,7 +10,8 @@
     "arrayObj": [
         {
             "int":  213,
-            "str":  "hello!"
+            "str":  "hello!",
+            "alsoinvalid": 6451154
         },
         {
             "int":  -213,

@@ -44,13 +44,13 @@ void printSampleData(sampleData myData){
 
    printf("arrInt: ");
    int i;
-   for(int i = 0; i < myData.arrIntLen; i++){
+   for(i = 0; i < myData.arrIntLen; i++){
       printf("%d ", myData.arrInt[i]);
    }
    printf("\n");
 
    printf("arrObj: ");
-   for(int i = 0; i < myData.arrObjLen; i++){
+   for(i = 0; i < myData.arrObjLen; i++){
       printObj(myData.arrObj[i]);
    }
    printf("\n");
@@ -68,15 +68,18 @@ void freeSampleData(sampleData myData){
 */
 
 // a dumb linked list for handling list of saved strings
-typedef struct{
+typedef struct linkedList linkedList;
+struct linkedList{
    linkedList *next; 
    char* str;
-} linkedList;
+};
 
-void initLL(linkedList *head){
-   head = (linkedList*) malloc(sizeof(linkedList));
-   head->next = NULL;
-   dynAllocStr("", &head->str); // fill w blank string
+void dynAllocStr(const char *val, char **toReturn);
+
+void initLL(linkedList **head){
+   *head = (linkedList*) malloc(sizeof(linkedList));
+   (*head)->next = NULL;
+   dynAllocStr("", &((*head)->str)); // fill w blank string
 }
 
 int compareList(linkedList *head, const char* val){
@@ -107,7 +110,7 @@ void push(linkedList * head, const char* val){
 
    // alloc and add to end
    curr->next = (linkedList*) malloc(sizeof(linkedList));
-   dynAllocStr(val, &curr->next->val);
+   dynAllocStr(val, &curr->next->str);
    curr->next->next = NULL;
 }
 
@@ -231,8 +234,8 @@ int getFileStr(char* inFile, char** fileStr){
    
    /* copy all the text into the buffer */
    if (fread(*fileStr, sizeof(char), numbytes, fptr) != 1){
-	   	printf("Error reading file %s\nQuitting.\n", inFile);
-      	return 1;
+      printf("Error reading file %s\nQuitting.\n", inFile);
+      return 1;
    }
 
    fclose(fptr); // close file to free memory
@@ -265,9 +268,9 @@ int readJson(char* inFile){
 
    // set up "error checking" routines
    linkedList *jsonTagList = NULL;
-   initLL(jsonTagList);
+   initLL(&jsonTagList);
    linkedList *arrayList = NULL;
-   initLL(arrayList);
+   initLL(&arrayList);
 
    // get strings 
    getJObjStr(jObj, "string", "", &myData.str1, jsonTagList);
