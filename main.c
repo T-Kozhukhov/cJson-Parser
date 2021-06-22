@@ -114,6 +114,24 @@ void push(linkedList * head, const char* val){
    curr->next->next = NULL;
 }
 
+void freeLL(linkedList *head){
+/*
+   Free the specified linked list
+*/
+   if (head == NULL) return;
+
+   linkedList *curr = head;
+   do
+   {
+      linkedList *next = curr->next; //save for later
+      free(curr->str);
+      free(curr);
+      curr = next;
+   } while (curr != NULL); // specifically use a do-while loop here to free all
+
+   return;
+}
+
 /* 
    A variety of helper objects to read from Json and fill up a given data structure, and have some 
       mild segfault protection.
@@ -317,12 +335,15 @@ int readJson(char* inFile){
       - Deallocate the linked list (as necessary, use valgrind)
    */
 
+   // handle sample data
    printSampleData(myData); // print the sample data at the end for verification
+   freeSampleData(myData);  // free
+
+   // memory cleanup
    cJSON_Delete(jObj); // free the json object
    free(fileStr); // free the file string when done
-
-   //when done need to free anything you got using getJObjStr, so call a "destuctor" to do this
-   freeSampleData(myData);
+   freeLL(jsonTagList); // free the linked lists
+   freeLL(arrayList);
 }
 
 int main() {
