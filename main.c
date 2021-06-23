@@ -87,7 +87,7 @@ int readJson(char* inFile){
       return 1;
    }
 
-   // set up "error checking" routines
+   // set up input validation routines
    linkedList *jsonTagList = NULL;
    initLL(&jsonTagList);
    linkedList *arrayList = NULL;
@@ -129,18 +129,6 @@ int readJson(char* inFile){
    // input verification step
    verifyJson(jObj, jsonTagList, arrayList);
    printf("\n");
-
-   // TODO: verification stuff
-   /*
-      Need to do the following:
-      - Go through the jObj item as a linked list (use a given method in the readme)
-      - For each item, check the json tag:
-         - If the json tag IS NOT on the jsonTagList linked list, throw an error for the user
-            - Can do this using my method above
-         - If the json tag is an array, then iterate within the array and do the same check
-            - This is only down to a single level
-      - Deallocate the linked list (as necessary, use valgrind)
-   */
 
    // handle sample data
    printSampleData(myData); // print the sample data at the end for verification
