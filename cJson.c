@@ -49,7 +49,7 @@ int compareList(linkedList *head, const char* val){
   return 0; // if you're here then it doesnt exist in the list
 }
 
-void push(linkedList * head, const char* val){
+void pushLL(linkedList * head, const char* val){
 /*
    push a value to the end of the linked list
 */
@@ -120,15 +120,15 @@ void verifyJson(cJSON *jObj, linkedList *jsonTagList, linkedList* arrayList){
    These SHOULD also be used to parse data from within array contained objects.
 */
 
-cJSON getCJsonArray(cJSON *jObj, cJSON **toReturn, const char* val, 
+void getCJsonArray(cJSON *jObj, cJSON **toReturn, const char* val, 
    linkedList *jsonList, linkedList *arrayList, int type){
 /*
    Set up a cJSON array ready for parsing, while adding to the necessary linked lists
    Type param: 0 for array of primitives, 1 for array of objects
 */
    *toReturn = cJSON_GetObjectItemCaseSensitive(jObj, val);
-   push(jsonList, val);
-   if (type)   push(arrayList, val); // if array of objects add to array list
+   pushLL(jsonList, val);
+   if (type)   pushLL(arrayList, val); // if array of objects add to array list
 }
 
 int getJObjInt(cJSON *cJSONRoot, const char* jsonTag, int d, linkedList *head){
@@ -136,7 +136,7 @@ int getJObjInt(cJSON *cJSONRoot, const char* jsonTag, int d, linkedList *head){
       Returns an integer object from the given cJSON file searching for a particular jsonTag.
       If no appropriate json tag is found then it will return default value d
    */
-   push(head, jsonTag); // add jsonTag to head
+   pushLL(head, jsonTag); // add jsonTag to head
 
    // cJson bits
    cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
@@ -153,7 +153,7 @@ double getJObjDou(cJSON *cJSONRoot, const char* jsonTag, double d, linkedList *h
       Returns a double object from the given cJSON file searching for a particular jsonTag.
       If no appropriate json tag is found then it will return default value d
    */
-   push(head, jsonTag); // add jsonTag to head
+   pushLL(head, jsonTag); // add jsonTag to head
 
    // cJson bits
    cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);
@@ -187,7 +187,7 @@ void getJObjStr(cJSON *cJSONRoot, const char* jsonTag, const char* d, char **toR
       Returns a string object from the given cJSON file searching for a particular jsonTag.
       If no appropriate json tag is found then it will return default value d
    */
-   push(head, jsonTag); // add jsonTag to head
+   pushLL(head, jsonTag); // add jsonTag to head
 
    // cJson bits
    cJSON *jObj = cJSON_GetObjectItemCaseSensitive(cJSONRoot, jsonTag);

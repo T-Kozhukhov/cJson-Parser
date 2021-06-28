@@ -18,10 +18,14 @@ struct linkedList{
 void initLL(linkedList **head);
 void printLL(linkedList *head);
 int compareList(linkedList *head, const char* val);
-void push(linkedList * head, const char* val);
+void pushLL(linkedList * head, const char* val);
 void freeLL(linkedList *head);
 
-cJSON getCJsonArray(cJSON *jObj, cJSON **toReturn, const char* val, 
+/*
+    Methods for parsing and handling cJson data
+*/
+
+void getCJsonArray(cJSON *jObj, cJSON **toReturn, const char* val, 
    linkedList *jsonList, linkedList *arrayList, int type);
 int getJObjInt(cJSON *cJSONRoot, const char* jsonTag, int d, linkedList *head);
 double getJObjDou(cJSON *cJSONRoot, const char* jsonTag, double d, 
