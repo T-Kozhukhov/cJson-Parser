@@ -126,6 +126,12 @@ int readJson(char* inFile){
    }
    myData.arrObj = objBuff; // write to data
 
+   cJSON *arrError = NULL; // purposefully look for an array that doesn't exist
+   getCJsonArray(jObj, &arrError, "arrayError", jsonTagList, arrayList, 0);
+   if (arrError != NULL) { // In order to check if an array exists or not, this is how you're meant to do it
+      printf("Found arrError!\n");
+   } else printf("Didn't find arrError!\n");
+
    // input verification step
    verifyJson(jObj, jsonTagList, arrayList);
    printf("\n");
