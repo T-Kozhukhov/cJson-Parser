@@ -1,3 +1,9 @@
+/*
+   Helper code to set up JSON parsers in C.
+   Uses the cJson library by Dave Gramble released under MIT license.
+   Started by Timofey Kozhukhov, Summer 2021.
+*/
+
 #ifndef HGUARD_cJson_h
 #define HGUARD_cJson_h
 
