@@ -1,8 +1,11 @@
 # cJson Parser
 A basic implementation of Json for parsing of input data in simulations. 
-Designed for use with C for the Shendruk Lab's MPCD code, but _should_ also work with C++ (although untested). 
+Designed for use with C for the Shendruk Lab's MPCD code.
+It should _not_ work in C++ due to C++ not conforming to ANSI C.
 
 Based entirely around cJson, designed to be lightweight and minimise fuss. 
+A hacky implementation of comments have been added, and will work anywhere _except_ directly in arrays of complex structures (see `arrayObj` in the test case json).
+Comments tags included by default are `"c"`, `"comment"`, `"//"`, and `"#"`.
 
 ## How to install to a project
 Copy the following from the root directory of this repo to your project directory:
