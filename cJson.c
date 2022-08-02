@@ -110,6 +110,8 @@ void verifyJson(cJSON *jObj, linkedList *jsonTagList, linkedList* arrayList){
       the lists to be properly constructed
 */
    cJSON *childObj = NULL;
+   int validJson = 1; // flag on whether the JSON is valid or not.
+
    cJSON_ArrayForEach(childObj, jObj){ // loop through children
       const char *jTag = childObj->string; // get json tag
       
@@ -118,6 +120,7 @@ void verifyJson(cJSON *jObj, linkedList *jsonTagList, linkedList* arrayList){
          if (!isComment(jTag)){ // check if the tag is a comment
             // throw a warning if it's not
             printf("JSON Read Warning: Found unrecognised json tag: %s. Tag will be ignored.\n", jTag);
+            validJson = 0;
          }
       } else {
          // if tag exists, check if it is an array and verify the subarray if necessary
@@ -131,6 +134,11 @@ void verifyJson(cJSON *jObj, linkedList *jsonTagList, linkedList* arrayList){
             }
          }
       }
+   }
+
+   if (!validJson){
+      printf("JSON Read Error: Errors found.\n");
+      exit(EXIT_FAILURE);
    }
 }
 
