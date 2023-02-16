@@ -1,4 +1,7 @@
 # cJson Parser
+**Note**: This parser hasn't been updated in this repository for around a year, but has had on-and-off updates within the Shendruk Lab simulator. 
+It should be considred abandoned.
+
 A basic implementation of Json for parsing of input data in simulations. 
 Designed for use with C for the Shendruk Lab's MPCD code.
 It should _not_ work in C++ due to C++ not conforming to ANSI C.
